@@ -1,8 +1,7 @@
-
-
-import pandas as pd
 import os
 import sys
+import pandas as pd
+import pyarrow.parquet as pq
 
 def load_data(path):
     """
@@ -31,6 +30,7 @@ def load_data(path):
     except Exception as e:
         print(f"Error: {e}. An unknown error occurred while loading the dataset.")
     return None
+
 
 
 def save_data(df, output_folder, filename):
