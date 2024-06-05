@@ -294,12 +294,19 @@ def detect_outliers(df):
             return
         
         # Visualize outliers using box plots
-        for column in numerical_features.columns:
-            plt.figure(figsize=(8, 6))
-            sns.boxplot(x=df[column])
-            plt.title(f'Boxplot of {column}')
-            plt.xlabel(column)
-            plt.show()
+        num_cols = 2
+        num_rows = math.ceil(len(numerical_features.columns) / num_cols)
+        
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 6 * num_rows))
+        axes = axes.ravel()
+        
+        for i, column in enumerate(numerical_features.columns):
+            sns.boxplot(x=df[column], ax=axes[i])
+            axes[i].set_title(f'Boxplot of {column}')
+            axes[i].set_xlabel(column)
+        
+        plt.tight_layout()
+        plt.show()
         
         logging.info("Completed outlier detection")
         
@@ -320,5 +327,3 @@ def detect_outliers(df):
         
     except Exception as e:
         logging.error(f"An error occurred during outlier detection: {str(e)}")
-
-
