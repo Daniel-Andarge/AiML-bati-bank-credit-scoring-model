@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import logging
 import math
 
 logging.basicConfig(filename='eda_analysis.log', level=logging.INFO, 
@@ -124,6 +127,8 @@ def visualize_numerical_distribution(df):
 
 
 
+
+
 def analyze_categorical_distribution(df):
     """
     Analyze the distribution of categorical features in the provided dataset.
@@ -137,6 +142,9 @@ def analyze_categorical_distribution(df):
     try:
         logging.info("Started analyzing categorical feature distribution")
         
+        # Limit the DataFrame to the first 2000 rows
+        df = df.head(2000)
+        
         # Extract categorical features
         categorical_features = df.select_dtypes(include=['object'])
         
@@ -144,32 +152,38 @@ def analyze_categorical_distribution(df):
             logging.error("No categorical features found in the provided DataFrame.")
             return
         
-        # Visualize distribution of categorical features using Matplotlib
+        # Aggregate data before plotting
+        aggregated_data = {col: df[col].value_counts() for col in categorical_features.columns}
+        
+        # Calculate number of rows and columns for subplots
         num_cols = 2
         num_rows = math.ceil(len(categorical_features.columns) / num_cols)
         
-        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 6 * num_rows))
-        axes = axes.ravel()
+        fig = make_subplots(rows=num_rows, cols=num_cols, subplot_titles=[f'Distribution of {col}' for col in categorical_features.columns])
+
+        for i, (column, value_counts) in enumerate(aggregated_data.items()):
+            row = i // num_cols + 1
+            col = i % num_cols + 1
+            bar = go.Bar(x=value_counts.index, y=value_counts.values, name=column)
+            fig.add_trace(bar, row=row, col=col)
         
-        for i, column in enumerate(categorical_features.columns):
-            df[column].value_counts().plot(kind='bar', ax=axes[i])
-            axes[i].set_title(f'Distribution of {column}')
-            axes[i].set_xlabel(column)
-            axes[i].set_ylabel('Count')
-        
-        plt.tight_layout()
-        plt.show()
+        fig.update_layout(height=300 * num_rows, showlegend=False)
+        fig.show()
         
         logging.info("Completed analysis")
         
         print("Observations:")
-        for column in categorical_features.columns:
-            unique_categories = df[column].nunique()
+        for column, value_counts in aggregated_data.items():
+            unique_categories = len(value_counts)
             print(f"{column} has {unique_categories} unique categories.")
     
     except Exception as e:
         logging.error(f"An error occurred during categorical feature analysis: {str(e)}")
         print(f"An error occurred during categorical feature analysis: {str(e)}")
+
+
+
+
 
 def correlation_analysis(df):
     """
