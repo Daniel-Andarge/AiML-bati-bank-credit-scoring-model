@@ -2,6 +2,11 @@ import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
+import math
+
+logging.basicConfig(filename='eda_analysis.log', level=logging.INFO, 
+                    format='%(asctime)s:%(levelname)s:%(message)s')
 
 
 def eda_overview(df):
@@ -15,19 +20,32 @@ def eda_overview(df):
     - None
     """
     try:
+        logging.info("Started EDA overview")
+
         if df.empty:
+            logging.error("Empty DataFrame provided.")
             print("DataFrame is empty.")
             return
 
         # Display the number of rows, columns, and data types
+        logging.info(f"Number of rows: {df.shape[0]}")
+        logging.info(f"Number of columns: {df.shape[1]}")
+        logging.info("Data Types:")
+        logging.info(df.dtypes.to_string())
+
         print("Dataset Overview:")
         print("Number of rows:", df.shape[0])
         print("Number of columns:", df.shape[1])
         print("\nData Types:")
         print(df.dtypes)
     
+        logging.info("Completed EDA overview")
+
     except Exception as e:
+        logging.error(f"An error occurred during EDA: {str(e)}")
         print("An error occurred during EDA:", str(e))
+
+
 
 
 
@@ -53,11 +71,7 @@ def descriptive_stat(df):
         credit_stats = df.describe()
         print("Summary Statistics:")
         print(credit_stats)
-        
-        # Additional analysis
-        logging.info("Performing additional analysis")
-        # Your analysis code here
-        
+   
         logging.info("Completed analysis")
     
     except Exception as e:
@@ -81,13 +95,20 @@ def visualize_numerical_distribution(df):
     numerical_features = df.select_dtypes(include=['float64', 'int64'])
     
     # Visualize distribution of numerical features
-    for column in numerical_features.columns:
-        plt.figure(figsize=(8, 6))
-        sns.histplot(df[column], kde=True, bins=20, color='skyblue')
-        plt.title(f'Distribution of {column}')
-        plt.xlabel(column)
-        plt.ylabel('Frequency')
-        plt.show()
+    num_cols = 2
+    num_rows = math.ceil(len(numerical_features.columns) / num_cols)
+    
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 6 * num_rows))
+    axes = axes.ravel()
+    
+    for i, column in enumerate(numerical_features.columns):
+        sns.histplot(df[column], kde=True, bins=20, color='skyblue', ax=axes[i])
+        axes[i].set_title(f'Distribution of {column}')
+        axes[i].set_xlabel(column)
+        axes[i].set_ylabel('Frequency')
+    
+    plt.tight_layout()
+    plt.show()
     
     logging.info("Completed visualization")
     
@@ -123,15 +144,21 @@ def analyze_categorical_distribution(df):
             logging.error("No categorical features found in the provided DataFrame.")
             return
         
-        # Visualize distribution of categorical features
-        for column in categorical_features.columns:
-            plt.figure(figsize=(8, 6))
-            sns.countplot(x=column, data=df, palette='Set3')
-            plt.title(f'Distribution of {column}')
-            plt.xlabel(column)
-            plt.ylabel('Count')
-            plt.xticks(rotation=45)
-            plt.show()
+        # Visualize distribution of categorical features using Matplotlib
+        num_cols = 2
+        num_rows = math.ceil(len(categorical_features.columns) / num_cols)
+        
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 6 * num_rows))
+        axes = axes.ravel()
+        
+        for i, column in enumerate(categorical_features.columns):
+            df[column].value_counts().plot(kind='bar', ax=axes[i])
+            axes[i].set_title(f'Distribution of {column}')
+            axes[i].set_xlabel(column)
+            axes[i].set_ylabel('Count')
+        
+        plt.tight_layout()
+        plt.show()
         
         logging.info("Completed analysis")
         
@@ -142,7 +169,7 @@ def analyze_categorical_distribution(df):
     
     except Exception as e:
         logging.error(f"An error occurred during categorical feature analysis: {str(e)}")
-
+        print(f"An error occurred during categorical feature analysis: {str(e)}")
 
 def correlation_analysis(df):
     """
@@ -238,7 +265,6 @@ def identify_missing_values(df):
         
     except Exception as e:
         logging.error(f"An error occurred during missing values identification: {str(e)}")
-
 
 
 
