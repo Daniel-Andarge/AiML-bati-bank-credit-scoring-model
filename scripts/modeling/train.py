@@ -1,30 +1,26 @@
-from pathlib import Path
+from sklearn.model_selection import train_test_split
 
-import typer
-from loguru import logger
-from tqdm import tqdm
+X = preprocessed_fraud_detection_data.drop('Assessment_Binary', axis=1)
+y = preprocessed_fraud_detection_data['Assessment_Binary']
 
-from scripts.config import MODELS_DIR, PROCESSED_DATA_DIR
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-app = typer.Typer()
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
+# Logistic Regression
+lr_model = LogisticRegression()
+lr_model.fit(X_train, y_train)
 
-@app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    features_path: Path = PROCESSED_DATA_DIR / "features.csv",
-    labels_path: Path = PROCESSED_DATA_DIR / "labels.csv",
-    model_path: Path = MODELS_DIR / "model.pkl",
-    # -----------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Training some model...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Modeling training complete.")
-    # -----------------------------------------
+# Decision Trees
+dt_model = DecisionTreeClassifier()
+dt_model.fit(X_train, y_train)
 
+# Random Forest
+rf_model = RandomForestClassifier()
+rf_model.fit(X_train, y_train)
 
-if __name__ == "__main__":
-    app()
+# Gradient Boosting Machines (GBM)
+gbm_model = GradientBoostingClassifier()
+gbm_model.fit(X_train, y_train)
