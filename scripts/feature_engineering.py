@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.impute import SimpleImputer
+import numpy as np
 
 def create_aggregate_features(df):
     try:
@@ -39,6 +40,38 @@ def extract_time_features(df):
         print("An error occurred:", e)
 
 
+
+def remove_outliers(df):
+    """
+    Removes outliers from a DataFrame based on the IQR method.
+
+    Parameters:
+    df (pd.DataFrame): Input DataFrame from which to remove outliers.
+
+    Returns:
+    pd.DataFrame: DataFrame with outliers removed.
+    """
+    # Select numerical features
+    numerical_features = df.select_dtypes(include=[np.number])
+    
+    # Initialize a boolean mask to keep track of outliers
+    mask = pd.Series([True] * len(df))
+
+    for column in numerical_features.columns:
+        q1 = df[column].quantile(0.25)
+        q3 = df[column].quantile(0.75)
+        iqr = q3 - q1
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+        
+        # Update the mask to filter out rows containing outliers
+        mask = mask & ~((df[column] < lower_bound) | (df[column] > upper_bound))
+
+    # Filter the DataFrame to remove outliers
+    df_no_outliers = df[mask]
+    return df_no_outliers
+
+
 def encode_categorical_variables(df):
     """
     Encodes categorical variables in the input dataframe using Label Encoding.
@@ -57,11 +90,6 @@ def encode_categorical_variables(df):
         label_encoder = LabelEncoder()
         for col in data.select_dtypes(include=['object']).columns:
             data[col] = label_encoder.fit_transform(data[col])
-
-        # Convert data types to numerical
-        for col in data.columns:
-            if data[col].dtype == 'object':
-                data[col] = data[col].astype('int64')
 
         return data
     except Exception as e:
