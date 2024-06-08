@@ -60,9 +60,6 @@ def calculate_rfms_score(df):
     return df
 
 
-
-
-
 def preprocess_data(df):
     """
     Preprocess the input DataFrame by encoding categorical features and scaling numerical features.
